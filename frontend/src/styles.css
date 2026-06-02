@@ -36,10 +36,10 @@ button, input, select, textarea { font: inherit; }
   justify-content: center;
   padding: 40px 20px;
   color: white;
-  background-image: linear-gradient(180deg, rgba(59,7,100,0.5), rgba(107,33,168,0.3)),
-    url('/src/assets/mountains.svg');
+  background-image: linear-gradient(180deg, rgba(59,7,100,0.45), rgba(107,33,168,0.25)),
+    url('/src/assets/images.jpg');
   background-repeat: no-repeat;
-  background-position: center bottom;
+  background-position: center center;
   background-size: cover;
 }
 

@@ -10,10 +10,22 @@ type AuthContextType = {
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
   updateUser: (u: Partial<User>) => void;
-  authFetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
+  authFetch: (input: string, init?: RequestInit) => Promise<Response>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+/**
+ * In development, requests go to /api/... and Vite proxies them to localhost:4000.
+ * In production (Vercel), VITE_API_URL is set to the backend Vercel deployment URL,
+ * so all requests become https://your-api.vercel.app/api/...
+ */
+const API_BASE = (import.meta.env.VITE_API_URL as string) ?? "";
+
+function apiUrl(path: string): string {
+  // path is always like "/api/..."
+  return `${API_BASE}${path}`;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
@@ -24,18 +36,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
 
   function persist(u: User, t: string, rt: string) {
-    setUser(u);
-    setToken(t);
-    setRefreshTokenState(rt);
+    setUser(u); setToken(t); setRefreshTokenState(rt);
     localStorage.setItem("user", JSON.stringify(u));
     localStorage.setItem("token", t);
     localStorage.setItem("refreshToken", rt);
   }
 
   function clearSession() {
-    setUser(null);
-    setToken(null);
-    setRefreshTokenState(null);
+    setUser(null); setToken(null); setRefreshTokenState(null);
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
@@ -53,14 +61,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   /**
-   * Authenticated fetch.
-   * - Attaches Bearer token from localStorage.
-   * - On 401: tries to refresh the access token once, then retries.
-   * - If refresh fails: clears session (forces re-login).
-   * Reads from localStorage directly to avoid stale closure issues.
+   * Authenticated fetch — prepends API_BASE, attaches Bearer token,
+   * auto-refreshes on 401, clears session if refresh fails.
    */
   const authFetch = useCallback(async (
-    input: RequestInfo,
+    path: string,
     init: RequestInit = {}
   ): Promise<Response> => {
     const getToken = () => localStorage.getItem("token");
@@ -71,7 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return h;
     };
 
-    let res = await fetch(input, { ...init, headers: buildHeaders(getToken()) });
+    const url = apiUrl(path);
+    let res = await fetch(url, { ...init, headers: buildHeaders(getToken()) });
 
     if (res.status === 401) {
       const rt = localStorage.getItem("refreshToken");
@@ -79,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (rt) {
         try {
-          const refreshRes = await fetch("/api/auth/refresh", {
+          const refreshRes = await fetch(apiUrl("/api/auth/refresh"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ refreshToken: rt }),
@@ -90,11 +96,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setToken(newToken);
             localStorage.setItem("token", newToken);
           }
-        } catch { /* network error — fall through to clearSession */ }
+        } catch { /* fall through */ }
       }
 
       if (newToken) {
-        res = await fetch(input, { ...init, headers: buildHeaders(newToken) });
+        res = await fetch(url, { ...init, headers: buildHeaders(newToken) });
       } else {
         clearSession();
       }
@@ -106,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(apiUrl("/api/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -114,24 +120,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!res.ok) { const e = await res.json(); throw new Error(e.error || "Login failed"); }
       const data = await res.json();
       persist(data.user, data.token, data.refreshToken ?? "");
-    } finally {
-      setIsLoading(false);
-    }
+    } finally { setIsLoading(false); }
   };
 
   const register = async (email: string, password: string, name: string) => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch(apiUrl("/api/auth/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, name }),
       });
       if (!res.ok) { const e = await res.json(); throw new Error(e.error || "Registration failed"); }
       return await res.json();
-    } finally {
-      setIsLoading(false);
-    }
+    } finally { setIsLoading(false); }
   };
 
   return (
