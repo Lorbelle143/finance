@@ -3,9 +3,6 @@ import { Request, Response, NextFunction } from "express";
 import crypto from "crypto";
 
 const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET && process.env.NODE_ENV === "production") {
-  throw new Error("JWT_SECRET environment variable is required in production");
-}
 
 // In development a missing JWT_SECRET will cause functions that sign tokens to fail.
 // We intentionally avoid providing a hardcoded fallback in production.

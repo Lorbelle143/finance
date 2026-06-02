@@ -9,37 +9,46 @@ dotenv.config();
 
 const app = express();
 
-// Allow requests from the frontend origin
+// CORS — allow frontend origin + localhost for dev
+const rawOrigin = process.env.FRONTEND_URL ?? "";
 const allowedOrigins = [
-  process.env.FRONTEND_URL,
+  ...rawOrigin.split(",").map(s => s.trim()).filter(Boolean),
   "http://localhost:5173",
   "http://localhost:4173",
-].filter(Boolean) as string[];
+];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // allow same-origin (no origin header) and listed origins
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS: origin ${origin} not allowed`));
-      }
-    },
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, false); // silently reject instead of throwing
+    }
+  },
+  credentials: true,
+}));
 
 app.use(express.json());
 
-// Public auth routes
+// Health check — useful to verify the function is alive on Vercel
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok", ts: new Date().toISOString() });
+});
+
+// Auth routes (public)
 app.use("/api/auth", authRouter);
 
 // Protected routes
 app.use("/api", authMiddleware, router);
 
 app.get("/", (_req, res) => {
-  res.json({ status: "ok", message: "Inventory Financial System API" });
+  res.json({ status: "ok", message: "InventoryFin API" });
+});
+
+// Global error handler — prevents unhandled errors from crashing the function
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error("Unhandled error:", err.message);
+  res.status(500).json({ error: "Internal server error" });
 });
 
 export default app;
