@@ -1,54 +1,57 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
-import router from "../src/routes";
-import authRouter from "../src/authRoutes";
 import { authMiddleware } from "../src/auth";
-
-dotenv.config();
 
 const app = express();
 
-// CORS — allow frontend origin + localhost for dev
-const rawOrigin = process.env.FRONTEND_URL ?? "";
-const allowedOrigins = [
-  ...rawOrigin.split(",").map(s => s.trim()).filter(Boolean),
-  "http://localhost:5173",
-  "http://localhost:4173",
-];
+// ── CORS: accept all origins (lock down after confirming it works) ────────────
+app.use(cors({ origin: true, credentials: true }));
+app.use(express.json({ limit: "1mb" }));
 
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(null, false); // silently reject instead of throwing
-    }
-  },
-  credentials: true,
-}));
-
-app.use(express.json());
-
-// Health check — useful to verify the function is alive on Vercel
+// ── Health check — hit /health first to diagnose startup issues ───────────────
 app.get("/health", (_req, res) => {
-  res.json({ status: "ok", ts: new Date().toISOString() });
+  res.json({
+    ok: true,
+    ts: new Date().toISOString(),
+    env: {
+      hasDatabase: !!process.env.DATABASE_URL,
+      hasDirectUrl: !!process.env.DIRECT_URL,
+      hasJwt: !!process.env.JWT_SECRET,
+      nodeEnv: process.env.NODE_ENV ?? "undefined",
+    },
+  });
 });
 
-// Auth routes (public)
-app.use("/api/auth", authRouter);
+// ── Lazy-load routes so Prisma errors show in logs, not as silent crashes ─────
+app.use("/api/auth", async (req, res, next) => {
+  try {
+    const { default: authRouter } = await import("../src/authRoutes");
+    authRouter(req, res, next);
+  } catch (err: any) {
+    console.error("[ROUTE LOAD ERROR /api/auth]", err.message);
+    res.status(500).json({ error: "Auth router failed to load", detail: err.message });
+  }
+});
 
-// Protected routes
-app.use("/api", authMiddleware, router);
+app.use("/api", authMiddleware, async (req, res, next) => {
+  try {
+    const { default: router } = await import("../src/routes");
+    router(req, res, next);
+  } catch (err: any) {
+    console.error("[ROUTE LOAD ERROR /api]", err.message);
+    res.status(500).json({ error: "API router failed to load", detail: err.message });
+  }
+});
 
 app.get("/", (_req, res) => {
   res.json({ status: "ok", message: "InventoryFin API" });
 });
 
-// Global error handler — prevents unhandled errors from crashing the function
+// ── Global error handler ──────────────────────────────────────────────────────
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error("Unhandled error:", err.message);
-  res.status(500).json({ error: "Internal server error" });
+  console.error("[UNHANDLED ERROR]", err.stack ?? err.message);
+  res.status(500).json({ error: err.message || "Internal server error" });
 });
 
 export default app;
