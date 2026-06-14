@@ -5,10 +5,10 @@ type Props = {
 };
 
 export default function CreateItemForm({ onCreate }: Props) {
-  const [name, setName] = useState("");
+  const [name, setName]         = useState("");
   const [quantity, setQuantity] = useState<number | "">(1);
   const [unitPrice, setUnitPrice] = useState<number | "">(0);
-  const [error, setError] = useState("");
+  const [error, setError]       = useState("");
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -23,10 +23,11 @@ export default function CreateItemForm({ onCreate }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 100px auto", gap: 8, alignItems: "end" }}>
-        <div className="form-group">
-          <label className="form-label">Name</label>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+      {/* Desktop: 4-col row | Mobile: stacked */}
+      <div className="grid gap-2" style={{ gridTemplateColumns: "1fr 72px 96px auto" }}>
+        <div className="form-group" style={{ minWidth: 0 }}>
+          <label className="form-label">Item name</label>
           <input placeholder="e.g. Rice" value={name} onChange={e => setName(e.target.value)} />
         </div>
         <div className="form-group">
@@ -35,13 +36,16 @@ export default function CreateItemForm({ onCreate }: Props) {
             onChange={e => setQuantity(e.target.value === "" ? "" : Number(e.target.value))} />
         </div>
         <div className="form-group">
-          <label className="form-label">Unit Price</label>
+          <label className="form-label">Unit price</label>
           <input type="number" min={0} step="0.01" value={unitPrice}
             onChange={e => setUnitPrice(e.target.value === "" ? "" : Number(e.target.value))} />
         </div>
-        <button type="submit" className="btn btn-primary" style={{ height: 42 }}>Add</button>
+        <div className="form-group">
+          <label className="form-label opacity-0 select-none">_</label>
+          <button type="submit" className="btn btn-primary w-full h-[42px]">Add</button>
+        </div>
       </div>
-      {error && <p style={{ color: "var(--danger)", fontSize: "0.8rem", margin: "6px 0 0" }}>{error}</p>}
+      {error && <p className="text-xs text-red-600">{error}</p>}
     </form>
   );
 }

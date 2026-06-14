@@ -248,7 +248,7 @@ export default function Dashboard() {
           </div>
 
           {/* ── Inventory + Transaction form ─────────────────────────── */}
-          <div className="grid-two" style={{ marginBottom: 20 }}>
+          <div className="grid-two mb-5">
 
             {/* Inventory panel */}
             <div className="panel">
@@ -257,7 +257,7 @@ export default function Dashboard() {
                 <span className="pill neutral">{items.length} items · {totalItems} units</span>
               </div>
               <CreateItemForm onCreate={createItem} />
-              <div style={{ margin: "12px 0" }}>
+              <div className="my-3">
                 <div className="search-bar">
                   <span className="search-icon">🔍</span>
                   <input placeholder="Search items..." value={itemSearch} onChange={e => setItemSearch(e.target.value)} />

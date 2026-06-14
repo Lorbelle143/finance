@@ -3,6 +3,19 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --accent: #4f46e5;
+    --accent-light: #eef2ff;
+    --accent-dark: #3730a3;
+    --danger: #b91c1c;
+    --danger-light: #fee2e2;
+    --success: #166534;
+    --success-light: #dcfce7;
+    --border: #e5e7eb;
+    --muted: #6b7280;
+    --surface: #f8fafc;
+    --white: #ffffff;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     min-height: 100vh;
@@ -290,8 +303,12 @@
 
   /* ── Transaction form ── */
   .tx-form { @apply grid gap-4; }
-  .item-list-header { @apply grid gap-2 text-xs font-semibold text-gray-500 px-0.5; grid-template-columns: 2fr 80px 110px 36px; }
-  .item-row         { @apply grid gap-2 items-center; grid-template-columns: 2fr 80px 110px 36px; }
+  .item-list-header { @apply grid gap-2 text-xs font-semibold text-gray-500 px-0.5; grid-template-columns: 2fr 70px 100px 36px; }
+  .item-row         { @apply grid gap-2 items-center; grid-template-columns: 2fr 70px 100px 36px; }
+  @media (max-width: 480px) {
+    .item-list-header { grid-template-columns: 1fr 60px 80px 36px; }
+    .item-row         { grid-template-columns: 1fr 60px 80px 36px; }
+  }
   .remove-btn {
     @apply w-9 h-9 border-0 bg-red-50 text-red-700 rounded-xl cursor-pointer text-lg flex items-center justify-center flex-shrink-0;
     transition: opacity .15s;
@@ -461,7 +478,30 @@
   @media (max-width:600px) {
     .page-shell { @apply m-0 rounded-none min-h-screen; }
     .app-layout { @apply flex-col; }
-    .sidebar    { width: 100%; @apply flex-row flex-wrap p-3; }
+    /* Hide desktop sidebar on mobile */
+    .sidebar    { display: none !important; }
     .item-list-header, .item-row { grid-template-columns: 1fr 70px 90px 36px; }
+    /* Mobile: add bottom padding so content isn't hidden behind bottom nav */
+    .main-area  { @apply pb-24; }
   }
+
+  /* ── Mobile bottom navigation ── */
+  .mobile-nav {
+    @apply fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around px-2 py-2;
+    background: #1e2a35;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: none;
+  }
+  @media (max-width:600px) { .mobile-nav { display: flex; } }
+  .mobile-nav-item {
+    @apply flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl cursor-pointer border-0;
+    background: transparent;
+    color: rgba(255,255,255,0.5);
+    transition: color .15s, background .15s;
+    min-width: 52px;
+  }
+  .mobile-nav-item.active { @apply text-white; background: rgba(79,70,229,0.25); }
+  .mobile-nav-item:active { background: rgba(255,255,255,0.08); }
+  .mobile-nav-icon  { @apply text-xl leading-none; }
+  .mobile-nav-label { @apply text-xs font-semibold leading-none; }
 }

@@ -71,7 +71,7 @@ export default function StatisticsPage() {
                 </div>
               </div>
 
-              <div className="stats-grid" style={{ marginBottom: 24 }}>
+              <div className="stats-grid mb-6">
                 <div className="stat-card">
                   <div className="stat-card-label">💳 Current Balance</div>
                   <div className="stat-card-value">₱{fmt(stats.balance)}</div>
@@ -123,20 +123,23 @@ export default function StatisticsPage() {
               </div>
 
               {stats.topItems.length > 0 && (
-                <div className="panel" style={{ marginTop: 20 }}>
+                <div className="panel mt-5">
                   <div className="panel-title">Top Inventory Items by Value</div>
-                  <div style={{ display: "grid", gap: 10 }}>
+                  <div className="flex flex-col gap-3">
                     {stats.topItems.map((item, i) => {
                       const maxVal = stats.topItems[0].value;
                       const pct = maxVal > 0 ? (item.value / maxVal) * 100 : 0;
                       return (
-                        <div key={i} style={{ display: "grid", gap: 6 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.875rem" }}>
-                            <span style={{ fontWeight: 600 }}>{item.name}</span>
-                            <span style={{ color: "var(--muted)" }}>₱{fmt(item.value)}</span>
+                        <div key={i} className="flex flex-col gap-1.5">
+                          <div className="flex justify-between text-sm">
+                            <span className="font-semibold text-slate-900">{item.name}</span>
+                            <span className="text-gray-500">₱{fmt(item.value)}</span>
                           </div>
-                          <div style={{ height: 8, background: "var(--surface)", borderRadius: 999, overflow: "hidden" }}>
-                            <div style={{ height: "100%", width: `${pct}%`, background: "var(--accent)", borderRadius: 999, transition: "width 0.4s" }} />
+                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-indigo-600 rounded-full transition-all duration-500"
+                              style={{ width: `${pct}%` }}
+                            />
                           </div>
                         </div>
                       );

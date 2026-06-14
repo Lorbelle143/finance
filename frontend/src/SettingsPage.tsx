@@ -8,15 +8,13 @@ export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, authFetch, logout, updateUser } = useAuth();
 
-  const [name, setName] = useState(user?.name ?? "");
-  const [nameSaving, setNameSaving] = useState(false);
-
+  const [name,      setName]      = useState(user?.name ?? "");
+  const [nameSaving,setNameSaving]= useState(false);
   const [currentPw, setCurrentPw] = useState("");
-  const [newPw, setNewPw] = useState("");
+  const [newPw,     setNewPw]     = useState("");
   const [confirmPw, setConfirmPw] = useState("");
-  const [pwSaving, setPwSaving] = useState(false);
-
-  const [toast, setToast] = useState<ToastMsg>(null);
+  const [pwSaving,  setPwSaving]  = useState(false);
+  const [toast,     setToast]     = useState<ToastMsg>(null);
 
   async function handleSaveName(e: FormEvent) {
     e.preventDefault();
@@ -40,7 +38,7 @@ export default function SettingsPage() {
   async function handleChangePassword(e: FormEvent) {
     e.preventDefault();
     if (!currentPw || !newPw || !confirmPw) { setToast({ text: "All fields are required.", kind: "error" }); return; }
-    if (newPw.length < 6) { setToast({ text: "New password must be at least 6 characters.", kind: "error" }); return; }
+    if (newPw.length < 6) { setToast({ text: "Password must be at least 6 characters.", kind: "error" }); return; }
     if (newPw !== confirmPw) { setToast({ text: "Passwords do not match.", kind: "error" }); return; }
     setPwSaving(true);
     try {
@@ -72,11 +70,11 @@ export default function SettingsPage() {
           <div className="settings-grid">
             {/* Profile */}
             <div className="settings-section">
-              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
+              <div className="flex items-center gap-4 mb-5">
                 <div className="avatar avatar-lg">{user?.name?.charAt(0).toUpperCase() ?? "U"}</div>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: "1.1rem" }}>{user?.name}</div>
-                  <div style={{ color: "var(--muted)", fontSize: "0.875rem" }}>{user?.email}</div>
+                  <div className="font-extrabold text-lg text-slate-900">{user?.name}</div>
+                  <div className="text-sm text-gray-500">{user?.email}</div>
                 </div>
               </div>
               <h3>Update Profile</h3>
@@ -87,7 +85,7 @@ export default function SettingsPage() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Email</label>
-                  <input value={user?.email ?? ""} disabled style={{ opacity: 0.6, cursor: "not-allowed" }} />
+                  <input value={user?.email ?? ""} disabled className="opacity-60 cursor-not-allowed" />
                 </div>
                 <button type="submit" className="btn btn-primary" disabled={nameSaving}>
                   {nameSaving ? "Saving..." : "Save Changes"}
@@ -117,10 +115,10 @@ export default function SettingsPage() {
               </form>
             </div>
 
-            {/* Danger zone */}
+            {/* Session */}
             <div className="settings-section">
               <h3>Session</h3>
-              <p style={{ color: "var(--muted)", fontSize: "0.875rem", marginBottom: 16, lineHeight: 1.6 }}>
+              <p className="text-sm text-gray-500 leading-relaxed mb-4">
                 Logging out clears your session from this device. Your data is saved and you can log back in anytime.
               </p>
               <button className="btn btn-danger" onClick={() => { logout(); navigate("/"); }}>
@@ -130,7 +128,6 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-
       <Toast msg={toast} onDismiss={() => setToast(null)} />
     </div>
   );

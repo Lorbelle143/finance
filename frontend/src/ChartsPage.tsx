@@ -73,7 +73,7 @@ export default function ChartsPage() {
           ) : (
             <>
               {/* KPI summary */}
-              <div className="stats-grid" style={{ marginBottom: 24 }}>
+              <div className="stats-grid mb-6">
                 <div className="stat-card">
                   <div className="stat-card-label">💳 Balance</div>
                   <div className="stat-card-value">₱{fmt(stats.balance)}</div>
